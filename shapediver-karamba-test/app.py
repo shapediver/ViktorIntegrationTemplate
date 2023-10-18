@@ -1,6 +1,6 @@
 from viktor import ViktorController, File, UserMessage, UserError
 from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image
-from viktor.views import GeometryView, GeometryResult
+from viktor.views import GeometryView, GeometryResult, ImageView, ImageResult
 from ShapeDiverTinySdk import ShapeDiverTinySessionSdk
 
 class Parametrization(ViktorParametrization):
@@ -38,7 +38,7 @@ class Controller(ViktorController):
         # Get parameter values from section "parameters"
         parameters = params.ShapeDiverParams
 
-        # run customization of ShapeDiver model
+        # init session and run customization of ShapeDiver model
         sessionSdk = ShapeDiverTinySessionSdk(self.ticket, self.modelViewUrl, parameters)
         
         # get resulting glTF 2
@@ -48,10 +48,42 @@ class Controller(ViktorController):
             raise UserError('Computation did not result in at least one glTF 2.0 asset.')
         
         if len(contentItemsGltf2) > 1: 
-            UserMessage.warning(f'Computation resulted in {matches.count} glTF 2.0 assets, only displaying the first one.')
+            UserMessage.warning(f'Computation resulted in {contentItemsGltf2.count} glTF 2.0 assets, only displaying the first one.')
 
         glTF_file = File.from_url(contentItemsGltf2[0]['href'])
 
         sessionSdk.close()
 
         return GeometryResult(geometry=glTF_file)
+
+    @ImageView("Image", duration_guess=1)
+    def runShapeDiverImageExport(self, params, **kwargs):
+
+        # Debug output
+        # UserMessage.info(str(params))
+
+        # Get parameter values from section "parameters"
+        parameters = params.ShapeDiverParams
+
+        # init session with ShapeDiver model (no need to pass the parameters here)
+        sessionSdk = ShapeDiverTinySessionSdk(self.ticket, self.modelViewUrl)
+
+        # get id of image export
+        imageExportId = [exp['id'] for exp in sessionSdk.response.exports() if exp['displayname'] == 'Download Png'][0]
+
+        # run the export
+        exportItems = sessionSdk.export(imageExportId, parameters).exportContentItems()
+            
+        if len(exportItems) < 1:
+            raise UserError('Export did not result in an image.')
+        
+        if len(exportItems) > 1: 
+            UserMessage.warning(f'Export resulted in {exportItems.count} images, only displaying the first one.')
+
+        image_file = File.from_url(exportItems[0]['href'])
+
+        # Note: Do not close the session here, because this results in the image download link to become invalid,
+        #       and it seems that the image download happens asynchronously.
+        # sessionSdk.close()
+
+        return ImageResult(image_file)

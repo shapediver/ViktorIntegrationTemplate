@@ -5,5 +5,15 @@ ticket = "718c311d77a31ceda3f46367a6b9c885883ab054ad37a191096e21974281f2ec52e97e
 modelViewUrl = "https://sddev3.eu-central-1.shapediver.com"
 
 sessionSdk = ShapeDiverTinySessionSdk(ticket, modelViewUrl)
-print(sessionSdk.response.outputContentItemsGltf2())
+
+# print(sessionSdk.response.outputContentItemsGltf2())
+
+# print(sessionSdk.response.exports())
+
+imageExportId = [exp['id'] for exp in sessionSdk.response.exports() if exp['displayname'] == 'Download Png'][0]
+# print(imageExportId)
+
+exportResponse = sessionSdk.export(imageExportId)
+print(exportResponse.exportContentItems()[0]['href'])
+
 sessionSdk.close()

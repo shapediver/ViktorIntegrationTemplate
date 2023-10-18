@@ -17,15 +17,18 @@ class ShapeDiverResponse:
     def outputs(self):
         return [value for (key, value) in self.response['outputs'].items()]
        
-    def exports(self):
-        return [value for (key, value) in self.response['exports'].items()]
-    
     def outputContentItems(self):
         return flatten_nested_list([outputs['content'] for outputs in self.outputs()])
 
     def outputContentItemsGltf2(self):
         return [item for item in self.outputContentItems() if item['contentType'] == 'model/gltf-binary']
 
+    def exports(self):
+        return [value for (key, value) in self.response['exports'].items()]
+    
+    def exportContentItems(self):
+        return flatten_nested_list([exports['content'] for exports in self.exports()])
+    
     def sessionId(self):
         return self.response['sessionId']
     
@@ -35,7 +38,8 @@ class ShapeDiverTinySessionSdk:
         Open a session with a ShapeDiver model, optionally include parameter values in request
         """
         self.modelViewUrl = modelViewUrl
-        endpoint = f'{modelViewUrl}/api/v2/ticket/{ticket}'
+        
+        endpoint = f'{self.modelViewUrl}/api/v2/ticket/{ticket}'
         jsonBody = paramDict if isinstance(paramDict, str) else json.dumps(paramDict)
         headers = {
             'Content-Type': 'application/json'
@@ -55,4 +59,19 @@ class ShapeDiverTinySessionSdk:
         if response.status_code != 200:
             raise Exception(f'Failed to close session (HTTP status code {response.status_code}): {response.text}')
 
+    def export(self, exportId, paramDict = {}):
+        """
+        Request an export
+        """
+        endpoint = f'{self.modelViewUrl}/api/v2/session/{self.response.sessionId()}/export'
+        body = {'exports': [exportId], 'parameters': paramDict}
+        jsonBody = json.dumps(body)
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        response = requests.put(endpoint, data=jsonBody, headers=headers)
+        if response.status_code != 200:
+            raise Exception(f'Failed to run export (HTTP status code {response.status_code}): {response.text}')
+
+        return ShapeDiverResponse(response.json())
     
