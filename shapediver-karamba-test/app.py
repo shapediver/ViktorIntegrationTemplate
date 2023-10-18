@@ -1,6 +1,6 @@
 from viktor import ViktorController, File, UserMessage, UserError
 from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image
-from viktor.views import GeometryView, GeometryResult, ImageView, ImageResult
+from viktor.views import GeometryView, GeometryResult, ImageView, ImageResult, PDFView, PDFResult
 from ShapeDiverTinySdk import ShapeDiverTinySessionSdk
 
 class Parametrization(ViktorParametrization):
@@ -87,3 +87,36 @@ class Controller(ViktorController):
         # sessionSdk.close()
 
         return ImageResult(image_file)
+
+    @PDFView("PDF", duration_guess=1)
+    def runShapeDiverPdfExport(self, params, **kwargs):
+
+        # Debug output
+        # UserMessage.info(str(params))
+
+        # Get parameter values from section "parameters"
+        parameters = params.ShapeDiverParams
+
+        # init session with ShapeDiver model (no need to pass the parameters here)
+        sessionSdk = ShapeDiverTinySessionSdk(self.ticket, self.modelViewUrl)
+
+        # get id of image export
+        pdfExportId = [exp['id'] for exp in sessionSdk.response.exports() if exp['displayname'] == 'Download Pdf'][0]
+
+        # run the export
+        exportItems = sessionSdk.export(pdfExportId, parameters).exportContentItems()
+            
+        if len(exportItems) < 1:
+            raise UserError('Export did not result in a PDF.')
+        
+        if len(exportItems) > 1: 
+            UserMessage.warning(f'Export resulted in {exportItems.count} PDFs, only displaying the first one.')
+
+        pdf_file = File.from_url(exportItems[0]['href'])
+
+        # Note: Do not close the session here, because this results in the image download link to become invalid,
+        #       and it seems that the image download happens asynchronously.
+        # sessionSdk.close()
+
+        return PDFResult(file=pdf_file)
+        
