@@ -1,7 +1,12 @@
 from viktor import ViktorController, File, UserMessage, UserError
 from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image
 from viktor.views import GeometryView, GeometryResult, ImageView, ImageResult, PDFView, PDFResult
-from ShapeDiverTinySdk import ShapeDiverTinySessionSdk
+from ShapeDiverTinySdkViktorUtils import ShapeDiverTinySessionSdkMemoized
+import os
+
+# ShapeDiver ticket and modelViewUrl
+ticket = os.getenv("SD_TICKET")
+modelViewUrl = os.getenv("SD_MODEL_VIEW_URL")
 
 class Parametrization(ViktorParametrization):
     intro = Section('Overview')
@@ -25,11 +30,8 @@ class Controller(ViktorController):
     label = 'ShapeDiver'
     parametrization = Parametrization
     
-    # ShapeDiver ticket and modelViewUrl
-    ticket = "718c311d77a31ceda3f46367a6b9c885883ab054ad37a191096e21974281f2ec52e97eda54eb378d689c1e858889a5ff63a6574459d801f3e9a2a48da62d11eba3c841b8c1d04e8a92b8cc20361cc83600a8e766aaaf0f8a154844e31740c595b31b275c7ce096d3c9adc7b20c08557eae446de69095ed91-c070fb14f2e811b5c2a79fddb9b4f0c8"
-    modelViewUrl = "https://sddev3.eu-central-1.shapediver.com"
-
-    @GeometryView('ShapeDiver Output Geometry', duration_guess=1, update_label='Run ShapeDiver', up_axis='Y')
+  
+    @GeometryView('ShapeDiver Output Geometry', duration_guess=1, update_label='Run ShapeDiver Computation', up_axis='Y')
     def runShapeDiver(self, params, **kwargs):
         
         # Debug output
@@ -38,12 +40,12 @@ class Controller(ViktorController):
         # Get parameter values from section "parameters"
         parameters = params.ShapeDiverParams
 
-        # init session and run customization of ShapeDiver model
-        sessionSdk = ShapeDiverTinySessionSdk(self.ticket, self.modelViewUrl, parameters)
-        
-        # get resulting glTF 2
-        contentItemsGltf2 = sessionSdk.response.outputContentItemsGltf2()
+        # Initialize a session with the model (memoized)
+        shapeDiverSessionSdk = ShapeDiverTinySessionSdkMemoized(ticket, modelViewUrl)
 
+        # compute outputs of ShapeDiver model, get resulting glTF 2 assets
+        contentItemsGltf2 = shapeDiverSessionSdk.output(parameters).outputContentItemsGltf2()
+        
         if len(contentItemsGltf2) < 1:
             raise UserError('Computation did not result in at least one glTF 2.0 asset.')
         
@@ -52,11 +54,9 @@ class Controller(ViktorController):
 
         glTF_file = File.from_url(contentItemsGltf2[0]['href'])
 
-        sessionSdk.close()
-
         return GeometryResult(geometry=glTF_file)
 
-    @ImageView("Image", duration_guess=1)
+    @ImageView("Image", duration_guess=1, update_label='Run ShapeDiver Image Export')
     def runShapeDiverImageExport(self, params, **kwargs):
 
         # Debug output
@@ -65,14 +65,14 @@ class Controller(ViktorController):
         # Get parameter values from section "parameters"
         parameters = params.ShapeDiverParams
 
-        # init session with ShapeDiver model (no need to pass the parameters here)
-        sessionSdk = ShapeDiverTinySessionSdk(self.ticket, self.modelViewUrl)
+        # Initialize a session with the model (memoized)
+        shapeDiverSessionSdk = ShapeDiverTinySessionSdkMemoized(ticket, modelViewUrl)
 
         # get id of image export
-        imageExportId = [exp['id'] for exp in sessionSdk.response.exports() if exp['displayname'] == 'Download Png'][0]
+        imageExportId = [exp['id'] for exp in shapeDiverSessionSdk.response.exports() if exp['displayname'] == 'Download Png'][0]
 
         # run the export
-        exportItems = sessionSdk.export(imageExportId, parameters).exportContentItems()
+        exportItems = shapeDiverSessionSdk.export(imageExportId, parameters).exportContentItems()
             
         if len(exportItems) < 1:
             raise UserError('Export did not result in an image.')
@@ -82,13 +82,9 @@ class Controller(ViktorController):
 
         image_file = File.from_url(exportItems[0]['href'])
 
-        # Note: Do not close the session here, because this results in the image download link to become invalid,
-        #       and it seems that the image download happens asynchronously.
-        # sessionSdk.close()
-
         return ImageResult(image_file)
 
-    @PDFView("PDF", duration_guess=1)
+    @PDFView("PDF", duration_guess=1, update_label='Run ShapeDiver PDF Export')
     def runShapeDiverPdfExport(self, params, **kwargs):
 
         # Debug output
@@ -97,14 +93,14 @@ class Controller(ViktorController):
         # Get parameter values from section "parameters"
         parameters = params.ShapeDiverParams
 
-        # init session with ShapeDiver model (no need to pass the parameters here)
-        sessionSdk = ShapeDiverTinySessionSdk(self.ticket, self.modelViewUrl)
+        # Initialize a session with the model (memoized)
+        shapeDiverSessionSdk = ShapeDiverTinySessionSdkMemoized(ticket, modelViewUrl)
 
         # get id of image export
-        pdfExportId = [exp['id'] for exp in sessionSdk.response.exports() if exp['displayname'] == 'Download Pdf'][0]
+        pdfExportId = [exp['id'] for exp in shapeDiverSessionSdk.response.exports() if exp['displayname'] == 'Download Pdf'][0]
 
         # run the export
-        exportItems = sessionSdk.export(pdfExportId, parameters).exportContentItems()
+        exportItems = shapeDiverSessionSdk.export(pdfExportId, parameters).exportContentItems()
             
         if len(exportItems) < 1:
             raise UserError('Export did not result in a PDF.')
@@ -113,10 +109,6 @@ class Controller(ViktorController):
             UserMessage.warning(f'Export resulted in {exportItems.count} PDFs, only displaying the first one.')
 
         pdf_file = File.from_url(exportItems[0]['href'])
-
-        # Note: Do not close the session here, because this results in the image download link to become invalid,
-        #       and it seems that the image download happens asynchronously.
-        # sessionSdk.close()
 
         return PDFResult(file=pdf_file)
         
