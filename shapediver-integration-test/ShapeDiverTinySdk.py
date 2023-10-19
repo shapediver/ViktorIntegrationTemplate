@@ -80,6 +80,7 @@ class ShapeDiverResponse:
     
 def ExceptionHandler(func):
     """Decorator for activating the exception handler"""
+
     def decorate(*args, **kwargs):
         self = args[0]
         if hasattr(self, 'exceptionHandler'):
@@ -98,6 +99,7 @@ def ExceptionHandler(func):
 
 def ParameterMapper(func):
     """Decorator for activating the parameter mapper"""
+    
     def decorate(*args, **kwargs):
         self = args[0]
         if hasattr(self, 'parameterMapper') and 'paramDict' in kwargs:
