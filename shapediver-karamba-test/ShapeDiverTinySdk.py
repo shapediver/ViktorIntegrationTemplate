@@ -77,6 +77,11 @@ def ExceptionHandler(func):
                 return func(*args, **kwargs)
             except Exception as e:
                 return self.exceptionHandler(e)
+        if 'exceptionHandler' in kwargs:
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                return kwargs['exceptionHandler'](e)
         else:
             return func(*args, **kwargs)
     return decorate
