@@ -27,6 +27,8 @@ def createParametrization(ticket, modelViewUrl):
             print(f"{varname} = NumberField('{ui_name}', name='{name}', default={param['defval']}, min={param['min']}, max={param['max']}, num_decimals=0, step=2, variant='{variant}')")
         elif param['type'] == 'Bool':
             print(f"{varname} = BooleanField('{ui_name}', name='{name}', default={False if param['defval'] == 'false' else True})")
+        elif param['type'] == 'String':
+            print(f"{varname} = TextField('{ui_name}', name='{name}', default='{param['defval']}')")
         elif param['type'] == 'StringList':
             options = []
             for item in param['choices']:
