@@ -1,4 +1,8 @@
-# How to use this example and for from it
+# How to use this example and fork from it
+
+A published version of this example can be found here: https://cloud.viktor.ai/public/shapediver-karamba-integration-test
+
+## Prerequisites
 
 Set environment variables `SD_TICKET` and `SD_MODEL_VIEW_URL` according to the ShapeDiver model you want to use. 
 You need to enable [backend access](https://help.shapediver.com/doc/enable-backend-access) for your model. 
@@ -8,7 +12,10 @@ export SD_TICKET=718c311d77a31ceda3f463...                             # Use a b
 export SD_MODEL_VIEW_URL=https://sdr7euc1.eu-central-1.shapediver.com  # Use the model view url of your ShapeDiver model here
 ```
 
-You can use the `createParametrization.py` script to help you with creating the parametrization for your Viktor app. 
+## Creating a Viktor parametrization for a ShapeDiver model
+
+Once the environment variables are set, you can use the [`createParametrization.py`](createParametrization.py) script to help you with creating the parametrization for your Viktor app. 
+
 An example:
 
 ```
@@ -27,7 +34,11 @@ param8 = OptionField('Render Settings', name='ShapeDiverParams.99459452-6f89-4c8
 param9 = NumberField('Deformation Scale', name='ShapeDiverParams.f582e03d-ec6f-4820-933e-a5ceefb9163e', default=100, min=0, max=100, num_decimals=0, step=1.0, variant='slider')
 ```
 
-When running the app for development in Viktor, use the environment variables like this: 
+You can use this as a starting point for defining input fields in [`app.py`](app.py).
+
+## Local development
+
+When running the app for local development in Viktor, make sure to use the environment variables like this: 
 
 ```
 viktor-cli start --env SD_TICKET=$SD_TICKET --env SD_MODEL_VIEW_URL=$SD_MODEL_VIEW_URL
