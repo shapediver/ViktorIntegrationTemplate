@@ -1,10 +1,7 @@
 from viktor import ViktorController, File, UserMessage, UserError
 from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image
 from viktor.views import GeometryView, GeometryResult
-from jsonpath_ng import parse
-import requests
-import json
-
+from ShapeDiverTinySdkViktorUtils import ShapeDiverTinySessionSdkMemoized
 
 class Parametrization(ViktorParametrization):
     intro = Section('Overview')
@@ -32,34 +29,25 @@ Here you can find the sample ShapeDiver model used by this app: [AR Cube](https:
     ## Parameters of ShapeDiver model (to be investigated how these can be defined dynamically, based on the model)
     ## Note: Set the "name" property to "parameters.{IDENTIFIER}" where {IDENTIFIER} is the id, name, or displayname of the ShapeDiver parameter!
     parameters = Section('Model Parameters')
-    parameters.cubes = NumberField('Cubes', name='parameters.Cubes', default=10, min=1, max=20, variant='slider')
-    parameters.cubeDensity = NumberField('Cube density', name='parameters.Cube density', default=3, min=1, max=5, variant='slider')
+    parameters.param3 = NumberField('Cubes', name='ShapeDiverParams.b719ebef-68f7-4c8e-b3b4-0e21b6ffcf4c', default=10, min=1, max=20, num_decimals=0, step=1, variant='slider')
+    parameters.param4 = NumberField('Faces per cube', name='ShapeDiverParams.fa076989-c83c-4988-b8b1-473101f16d43', default=2, min=1, max=5, num_decimals=0, step=1, variant='slider')
+    parameters.param5 = NumberField('Cube density', name='ShapeDiverParams.87266a9f-04e9-4d0e-bd5f-637243f62070', default=3, min=1, max=5, num_decimals=0, step=1, variant='slider')
+    parameters.param6 = NumberField('Field of view', name='ShapeDiverParams.b2804605-f0c4-48de-bca6-ec33b444e24d', default=15.0, min=0, max=90, num_decimals=1, step=0.1, variant='slider')
+    parameters.param7 = TextField('Position', name='ShapeDiverParams.4b542891-5f7e-4369-a86b-6182d8ff2204', default='')
+    # Commented due to the following issue: https://community.viktor.ai/t/problem-with-optionfield/1342 
+    #param8Options = [OptionListElement('0', 'Front'), OptionListElement('1', 'Right'), OptionListElement('2', 'Back'), OptionListElement('3', 'Left'), OptionListElement('4', 'Top'), OptionListElement('5', 'Corner 1'), OptionListElement('6', 'Corner 2'), OptionListElement('7', 'Corner 3'), OptionListElement('8', 'Corner 4')]
+    #parameters.param8 = OptionField('List', name='ShapeDiverParams.25dcb9a1-26b3-419f-ae16-759256211756', options=param8Options, default=5)
+
     parameters.note = Text("""
 Note: These parameters have been defined statically in the code of this app, based on the parameters of the default ShapeDiver model used by this app. 
 Fork the app on [GitHub](https://github.com/shapediver/ViktorIntegrationTemplate) to adapt the parameter definitions to your own ShapeDiver model. 
     """)
 
-  
-def runShapeDiverCustomization(ticket, modelViewUrl, paramDict):
-    """
-    Open a session with a ShapeDiver model, include parameter values in request, return result as JSON.
-    """
-    endpoint = f'{modelViewUrl}/api/v2/ticket/{ticket}'
-    jsonBody = json.dumps(paramDict)
-    headers = {
-        'Content-Type': 'application/json'
-    }
-    response = requests.post(endpoint, data=jsonBody, headers=headers)
-    if response.status_code != 201:
-        raise UserError(f'Failed to run computation (HTTP status code {response.status_code}): {response.text}')
-
-    return response.json()
-
 class Controller(ViktorController):
     label = 'ShapeDiver'
     parametrization = Parametrization
 
-    @GeometryView('ShapeDiver Output Geometry', duration_guess=5, update_label='Run ShapeDiver', up_axis='Y')
+    @GeometryView('ShapeDiver Output Geometry', duration_guess=1, update_label='Run ShapeDiver', up_axis='Y')
     def runShapeDiver(self, params, **kwargs):
         
         # Debug output
@@ -69,23 +57,20 @@ class Controller(ViktorController):
         model = params.model
 
         # Get parameter values from section "parameters"
-        parameters = params.parameters
+        parameters = params.ShapeDiverParams
 
-        # run customization of ShapeDiver model
-        response = runShapeDiverCustomization(ticket=model.ticket, modelViewUrl=model.modelViewUrl, paramDict=parameters)
+        # Initialize a session with the model (memoized)
+        shapeDiverSessionSdk = ShapeDiverTinySessionSdkMemoized(model.ticket, model.modelViewUrl)
+
+        # compute outputs of ShapeDiver model, get resulting glTF 2 assets
+        contentItemsGltf2 = shapeDiverSessionSdk.output(parameters).outputContentItemsGltf2()
         
-        # get the first glTF 2.0 url returned
-        # Note: Unfortunately jsonpath filters do not seem to work using the libraries I tested (jsonpath-ng, jsonpath-rw).
-        # Probably there is an easier way to achieve getting the glTF url. 
-        #jsonpath_expr = parse("$.outputs.*.content[?(@.contentType == 'model/gltf-binary')].href")
-        jsonpath_expr = parse('$.outputs.*.content[0]')
-        matches = list(filter(lambda item: item['contentType'] == 'model/gltf-binary', [match.value for match in jsonpath_expr.find(response)]))
-        if len(matches) < 1:
+        if len(contentItemsGltf2) < 1:
             raise UserError('Computation did not result in at least one glTF 2.0 asset.')
         
-        if len(matches) > 1: 
-            UserMessage.warning(f'Computation resulted in {matches.count} glTF 2.0 assets, only displaying the first one.')
+        if len(contentItemsGltf2) > 1: 
+            UserMessage.warning(f'Computation resulted in {contentItemsGltf2.count} glTF 2.0 assets, only displaying the first one.')
 
-        glTF_file = File.from_url(matches[0]['href'])
+        glTF_file = File.from_url(contentItemsGltf2[0]['href'])
 
         return GeometryResult(geometry=glTF_file)
