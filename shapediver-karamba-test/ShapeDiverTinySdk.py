@@ -69,12 +69,25 @@ class ShapeDiverResponse:
 
         return self.response['sessionId']
     
+def ExceptionHandler(func):
+    def decorate(*args, **kwargs):
+        self = args[0]
+        if hasattr(self, 'exceptionHandler'):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                return self.exceptionHandler(e)
+        else:
+            return func(*args, **kwargs)
+    return decorate
+
 class ShapeDiverTinySessionSdk:
     """A minimal Python SDK to handle sessions with ShapeDiver Geometry Backend Systems.
     
     """
 
-    def __init__(self, modelViewUrl, ticket=None, sessionInitResponse=None, paramDict = {}):
+    @ExceptionHandler
+    def __init__(self, modelViewUrl, ticket=None, sessionInitResponse=None, paramDict={}, exceptionHandler=None):
         """Open a session with a ShapeDiver model
         
         Parameter values can optionally be included in the session init request.
@@ -82,6 +95,9 @@ class ShapeDiverTinySessionSdk:
         """
 
         self.modelViewUrl = modelViewUrl
+
+        if exceptionHandler is not None:
+            self.exceptionHandler = exceptionHandler
       
         if sessionInitResponse is not None:
             self.response = ShapeDiverResponse(sessionInitResponse)
@@ -94,7 +110,7 @@ class ShapeDiverTinySessionSdk:
             }
             response = requests.post(endpoint, data=jsonBody, headers=headers)
             if response.status_code != 201:
-                raise Exception(f'Failed to run computation (HTTP status code {response.status_code}): {response.text}')
+                raise Exception(f'Failed to open session (HTTP status code {response.status_code}): {response.text}')
 
             # TODO: handle rate-limiting and delay
 
@@ -103,6 +119,7 @@ class ShapeDiverTinySessionSdk:
         else:
             raise Exception('Expected (ticket and modelViewUrl) or (sessionInitResponse and modelViewUrl) to be provided')
 
+    @ExceptionHandler
     def close(self):
         """Close the session
         
@@ -114,6 +131,7 @@ class ShapeDiverTinySessionSdk:
         if response.status_code != 200:
             raise Exception(f'Failed to close session (HTTP status code {response.status_code}): {response.text}')
 
+    @ExceptionHandler
     def output(self, paramDict = {}):
         """Request the computation of all outputs
 
@@ -133,6 +151,7 @@ class ShapeDiverTinySessionSdk:
 
         return ShapeDiverResponse(response.json())
 
+    @ExceptionHandler
     def export(self, exportId, paramDict = {}):
         """Request an export
 
@@ -147,7 +166,7 @@ class ShapeDiverTinySessionSdk:
         }
         response = requests.put(endpoint, data=jsonBody, headers=headers)
         if response.status_code != 200:
-            raise Exception(f'Failed to run export (HTTP status code {response.status_code}): {response.text}')
+            raise Exception(f'Failed to compute export (HTTP status code {response.status_code}): {response.text}')
 
         # TODO: handle rate-limiting and delay
 
