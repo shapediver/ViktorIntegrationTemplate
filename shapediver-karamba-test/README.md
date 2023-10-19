@@ -12,9 +12,9 @@ export SD_TICKET=718c311d77a31ceda3f463...                             # Use a b
 export SD_MODEL_VIEW_URL=https://sdr7euc1.eu-central-1.shapediver.com  # Use the model view url of your ShapeDiver model here
 ```
 
-## Creating a Viktor parametrization for a ShapeDiver model
+## Creating a VIKTOR parametrization for a ShapeDiver model
 
-Once the environment variables are set, you can use the [`createParametrization.py`](createParametrization.py) script to help you with creating the parametrization for your Viktor app. 
+Once the environment variables are set, you can use the [`createParametrization.py`](createParametrization.py) script to help you with creating the parametrization for your VIKTOR app. 
 
 An example:
 
@@ -38,7 +38,7 @@ You can use this as a starting point for defining input fields in [`app.py`](app
 
 ## Local development
 
-When running the app for local development in Viktor, make sure to use the environment variables like this: 
+When running the app for local development in VIKTOR, make sure to use the environment variables like this: 
 
 ```
 viktor-cli start --env SD_TICKET=$SD_TICKET --env SD_MODEL_VIEW_URL=$SD_MODEL_VIEW_URL
