@@ -1,5 +1,5 @@
 from viktor import ViktorController, File, UserMessage, UserError
-from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image
+from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image, ColorField, Color
 from viktor.views import GeometryView, GeometryResult
 from ShapeDiverTinySdkViktorUtils import ShapeDiverTinySessionSdkMemoized
 
@@ -37,6 +37,7 @@ Here you can find the sample ShapeDiver model used by this app: [AR Cube](https:
     # Commented due to the following issue: https://community.viktor.ai/t/problem-with-optionfield/1342 
     #param8Options = [OptionListElement('0', 'Front'), OptionListElement('1', 'Right'), OptionListElement('2', 'Back'), OptionListElement('3', 'Left'), OptionListElement('4', 'Top'), OptionListElement('5', 'Corner 1'), OptionListElement('6', 'Corner 2'), OptionListElement('7', 'Corner 3'), OptionListElement('8', 'Corner 4')]
     #parameters.param8 = OptionField('List', name='ShapeDiverParams.25dcb9a1-26b3-419f-ae16-759256211756', options=param8Options, default=5)
+    parameters.param9 = ColorField('Color', name='ShapeDiverParams.57840b0b-bfa5-4d09-b309-60502c829fd1', default=Color(255,255,255))
 
     parameters.note = Text("""
 Note: These parameters have been defined statically in the code of this app, based on the parameters of the default ShapeDiver model used by this app. 
@@ -60,10 +61,10 @@ class Controller(ViktorController):
         parameters = params.ShapeDiverParams
 
         # Initialize a session with the model (memoized)
-        shapeDiverSessionSdk = ShapeDiverTinySessionSdkMemoized(model.ticket, model.modelViewUrl)
+        shapeDiverSessionSdk = ShapeDiverTinySessionSdkMemoized(model.ticket, model.modelViewUrl, forceNewSession = True)
 
         # compute outputs of ShapeDiver model, get resulting glTF 2 assets
-        contentItemsGltf2 = shapeDiverSessionSdk.output(parameters).outputContentItemsGltf2()
+        contentItemsGltf2 = shapeDiverSessionSdk.output(paramDict = parameters).outputContentItemsGltf2()
         
         if len(contentItemsGltf2) < 1:
             raise UserError('Computation did not result in at least one glTF 2.0 asset.')

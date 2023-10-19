@@ -54,7 +54,7 @@ class Controller(ViktorController):
         shapeDiverSessionSdk = ShapeDiverTinySessionSdkMemoized(ticket, modelViewUrl)
 
         # compute outputs of ShapeDiver model, get resulting glTF 2 assets
-        contentItemsGltf2 = shapeDiverSessionSdk.output(parameters).outputContentItemsGltf2()
+        contentItemsGltf2 = shapeDiverSessionSdk.output(paramDict = parameters).outputContentItemsGltf2()
         
         if len(contentItemsGltf2) < 1:
             raise UserError('Computation did not result in at least one glTF 2.0 asset.')
@@ -82,7 +82,7 @@ class Controller(ViktorController):
         imageExportId = [exp['id'] for exp in shapeDiverSessionSdk.response.exports() if exp['displayname'] == 'Download Png'][0]
 
         # run the export
-        exportItems = shapeDiverSessionSdk.export(imageExportId, parameters).exportContentItems()
+        exportItems = shapeDiverSessionSdk.export(exportId = imageExportId, paramDict = parameters).exportContentItems()
             
         if len(exportItems) < 1:
             raise UserError('Export did not result in an image.')
@@ -110,7 +110,7 @@ class Controller(ViktorController):
         pdfExportId = [exp['id'] for exp in shapeDiverSessionSdk.response.exports() if exp['displayname'] == 'Download Pdf'][0]
 
         # run the export
-        exportItems = shapeDiverSessionSdk.export(pdfExportId, parameters).exportContentItems()
+        exportItems = shapeDiverSessionSdk.export(exportId = pdfExportId, paramDict = parameters).exportContentItems()
             
         if len(exportItems) < 1:
             raise UserError('Export did not result in a PDF.')

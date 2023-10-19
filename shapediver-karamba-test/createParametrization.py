@@ -1,6 +1,6 @@
 import json
 import os
-from ShapeDiverTinySdk import ShapeDiverTinySessionSdk
+from ShapeDiverTinySdk import ShapeDiverTinySessionSdk, ShapeDiverColorToRgb
 
 def createParametrization(ticket, modelViewUrl):
 
@@ -38,6 +38,9 @@ def createParametrization(ticket, modelViewUrl):
             print(f"{varname} = OptionField('{ui_name}', name='{name}', options={varnameOptions}, default={param['defval']})")
         #elif param['type'] == 'File':
         #see https://docs.viktor.ai/sdk/api/parametrization/#_FileField
+        elif param['type'] == 'Color':
+            rgb = ShapeDiverColorToRgb(param['defval'])
+            print(f"{varname} = ColorField('{ui_name}', name='{name}', default=Color({rgb[0]},{rgb[1]},{rgb[2]}))")
         else:
             print(f"Parameter type {param['type']} not implemented yet.")
             print(param)

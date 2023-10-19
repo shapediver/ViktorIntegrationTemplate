@@ -1,6 +1,15 @@
 import json
 import requests
 
+def ShapeDiverColorToRgb(sdColor):
+    return tuple(int(sdColor[i:i+2],16) for i in (2, 4, 6))
+
+def intToTwoDigitHex(i):
+    return hex(i)[2:].rjust(2, '0')
+
+def RgbToShapeDiverColor(r, g, b):
+    return f"0x{intToTwoDigitHex(r)}{intToTwoDigitHex(g)}{intToTwoDigitHex(b)}ff"
+
 def flatten_nested_list(nested_list):
     return [item for sublist in nested_list for item in (flatten_nested_list(sublist) if isinstance(sublist, list) else [sublist])]
 
@@ -70,6 +79,7 @@ class ShapeDiverResponse:
         return self.response['sessionId']
     
 def ExceptionHandler(func):
+    """Decorator for activating the exception handler"""
     def decorate(*args, **kwargs):
         self = args[0]
         if hasattr(self, 'exceptionHandler'):
@@ -86,13 +96,22 @@ def ExceptionHandler(func):
             return func(*args, **kwargs)
     return decorate
 
+def ParameterMapper(func):
+    """Decorator for activating the parameter mapper"""
+    def decorate(*args, **kwargs):
+        self = args[0]
+        if hasattr(self, 'parameterMapper') and 'paramDict' in kwargs:
+            kwargs['paramDict'] = self.parameterMapper(paramDict = kwargs['paramDict'], sdk = self)
+        return func(*args, **kwargs)
+    return decorate
+
 class ShapeDiverTinySessionSdk:
     """A minimal Python SDK to handle sessions with ShapeDiver Geometry Backend Systems.
     
     """
 
     @ExceptionHandler
-    def __init__(self, modelViewUrl, ticket=None, sessionInitResponse=None, paramDict={}, exceptionHandler=None):
+    def __init__(self, *, modelViewUrl, ticket=None, sessionInitResponse=None, paramDict={}, exceptionHandler=None, parameterMapper=None):
         """Open a session with a ShapeDiver model
         
         Parameter values can optionally be included in the session init request.
@@ -103,6 +122,9 @@ class ShapeDiverTinySessionSdk:
 
         if exceptionHandler is not None:
             self.exceptionHandler = exceptionHandler
+      
+        if parameterMapper is not None:
+            self.parameterMapper = parameterMapper
       
         if sessionInitResponse is not None:
             self.response = ShapeDiverResponse(sessionInitResponse)
@@ -137,7 +159,8 @@ class ShapeDiverTinySessionSdk:
             raise Exception(f'Failed to close session (HTTP status code {response.status_code}): {response.text}')
 
     @ExceptionHandler
-    def output(self, paramDict = {}):
+    @ParameterMapper
+    def output(self, *, paramDict = {}):
         """Request the computation of all outputs
 
         API documentation: https://sdr7euc1.eu-central-1.shapediver.com/api/v2/docs/#/output/put_api_v2_session__sessionId__output
@@ -157,7 +180,8 @@ class ShapeDiverTinySessionSdk:
         return ShapeDiverResponse(response.json())
 
     @ExceptionHandler
-    def export(self, exportId, paramDict = {}):
+    @ParameterMapper
+    def export(self, *, exportId, paramDict = {}):
         """Request an export
 
         API documentation: https://sdr7euc1.eu-central-1.shapediver.com/api/v2/docs/#/export/put_api_v2_session__sessionId__export
