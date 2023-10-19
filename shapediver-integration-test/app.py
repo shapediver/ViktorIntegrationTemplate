@@ -47,7 +47,7 @@ class Controller(ViktorController):
     label = 'ShapeDiver'
     parametrization = Parametrization
 
-    @GeometryView('ShapeDiver Output Geometry', duration_guess=1, update_label='Run ShapeDiver', up_axis='Y')
+    @GeometryView('ShapeDiver Output Geometry', duration_guess=3, update_label='Run ShapeDiver', up_axis='Y')
     def runShapeDiver(self, params, **kwargs):
         
         # Debug output
