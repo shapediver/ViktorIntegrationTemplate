@@ -33,9 +33,9 @@ def createParametrization(ticket, modelViewUrl):
             options = []
             for item in param['choices']:
                 options.append(f"OptionListElement('{len(options)}', '{item}')")
-            varnameOptions = f"{varname}Options"
+            varnameOptions = f"_{varname}Options"
             print(f"{varnameOptions} = [{', '.join(options)}]")
-            print(f"{varname} = OptionField('{ui_name}', name='{name}', options={varnameOptions}, default={param['defval']})")
+            print(f"{varname} = OptionField('{ui_name}', name='{name}', options={varnameOptions}, default='{param['defval']}')")
         #elif param['type'] == 'File':
         #see https://docs.viktor.ai/sdk/api/parametrization/#_FileField
         elif param['type'] == 'Color':

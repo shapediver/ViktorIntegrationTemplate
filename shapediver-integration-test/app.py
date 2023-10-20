@@ -1,5 +1,5 @@
 from viktor import ViktorController, File, UserMessage, UserError
-from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image, ColorField, Color
+from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image, ColorField, Color, OptionListElement, OptionField
 from viktor.views import GeometryView, GeometryResult
 from ShapeDiverTinySdkViktorUtils import ShapeDiverTinySessionSdkMemoized
 
@@ -27,16 +27,15 @@ Here you can find the sample ShapeDiver model used by this app: [AR Cube](https:
     """)
 
     ## Parameters of ShapeDiver model (to be investigated how these can be defined dynamically, based on the model)
-    ## Note: Set the "name" property to "parameters.{IDENTIFIER}" where {IDENTIFIER} is the id, name, or displayname of the ShapeDiver parameter!
+    ## Note: Set the "name" property to "ShapeDiverParams.{IDENTIFIER}" where {IDENTIFIER} is the id, name, or displayname of the ShapeDiver parameter!
     parameters = Section('Model Parameters')
     parameters.param3 = NumberField('Cubes', name='ShapeDiverParams.b719ebef-68f7-4c8e-b3b4-0e21b6ffcf4c', default=10, min=1, max=20, num_decimals=0, step=1, variant='slider')
     parameters.param4 = NumberField('Faces per cube', name='ShapeDiverParams.fa076989-c83c-4988-b8b1-473101f16d43', default=2, min=1, max=5, num_decimals=0, step=1, variant='slider')
     parameters.param5 = NumberField('Cube density', name='ShapeDiverParams.87266a9f-04e9-4d0e-bd5f-637243f62070', default=3, min=1, max=5, num_decimals=0, step=1, variant='slider')
     parameters.param6 = NumberField('Field of view', name='ShapeDiverParams.b2804605-f0c4-48de-bca6-ec33b444e24d', default=15.0, min=0, max=90, num_decimals=1, step=0.1, variant='slider')
     parameters.param7 = TextField('Position', name='ShapeDiverParams.4b542891-5f7e-4369-a86b-6182d8ff2204', default='')
-    # Commented due to the following issue: https://community.viktor.ai/t/problem-with-optionfield/1342 
-    #param8Options = [OptionListElement('0', 'Front'), OptionListElement('1', 'Right'), OptionListElement('2', 'Back'), OptionListElement('3', 'Left'), OptionListElement('4', 'Top'), OptionListElement('5', 'Corner 1'), OptionListElement('6', 'Corner 2'), OptionListElement('7', 'Corner 3'), OptionListElement('8', 'Corner 4')]
-    #parameters.param8 = OptionField('List', name='ShapeDiverParams.25dcb9a1-26b3-419f-ae16-759256211756', options=param8Options, default=5)
+    _param8Options = [OptionListElement('0', 'Front'), OptionListElement('1', 'Right'), OptionListElement('2', 'Back'), OptionListElement('3', 'Left'), OptionListElement('4', 'Top'), OptionListElement('5', 'Corner 1'), OptionListElement('6', 'Corner 2'), OptionListElement('7', 'Corner 3'), OptionListElement('8', 'Corner 4')]
+    parameters.param8 = OptionField('List', name='ShapeDiverParams.25dcb9a1-26b3-419f-ae16-759256211756', options=_param8Options, default='5')
     parameters.param9 = ColorField('Color', name='ShapeDiverParams.57840b0b-bfa5-4d09-b309-60502c829fd1', default=Color(255,255,255))
 
     parameters.note = Text("""
@@ -57,7 +56,7 @@ class Controller(ViktorController):
         # Get model information from section "model" 
         model = params.model
 
-        # Get parameter values from section "parameters"
+        # Get parameter values from section "ShapeDiverParams"
         parameters = params.ShapeDiverParams
 
         # Initialize a session with the model (memoized)
