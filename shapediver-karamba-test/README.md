@@ -4,8 +4,18 @@ A published version of this example can be found here: https://cloud.viktor.ai/p
 
 ## Prerequisites
 
+### Set up VIKTOR
+
+Please follow VIKTOR's [Getting started](https://docs.viktor.ai/docs/getting-started/) guide and familiarize yourself with developing VIKTOR apps. 
+
+The following steps assume that you installed the `viktor-cli` and have gained fundamental experience using VIKTOR. 
+
+### Environment variables
+
+This sample app makes use of environment variables to define which ShapeDiver model to communicate with. This allows you to avoid hardcoding critical information into your app. Please read the section on [environment variables](https://docs.viktor.ai/docs/create-apps/development-tools-and-tips/environment-variables) in VIKTOR's documentation. 
+
 Set environment variables `SD_TICKET` and `SD_MODEL_VIEW_URL` according to the ShapeDiver model you want to use. 
-You need to enable [backend access](https://help.shapediver.com/doc/enable-backend-access) for your model. 
+Note that you need to enable [backend access](https://help.shapediver.com/doc/enable-backend-access) for your model. 
 
 ```
 export SD_TICKET=718c311d77a31ceda3f463...                             # Use a backend ticket of your ShapeDiver model here
@@ -14,7 +24,7 @@ export SD_MODEL_VIEW_URL=https://sdr7euc1.eu-central-1.shapediver.com  # Use the
 
 ## Creating a VIKTOR parametrization for a ShapeDiver model
 
-Once the environment variables are set, you can use the [`createParametrization.py`](createParametrization.py) script to help you with creating the parametrization for your VIKTOR app. 
+Once the environment variables are set, you can use the [`createParametrization.py`](createParametrization.py) script to help you create the parametrization for your VIKTOR app. 
 
 An example:
 
@@ -29,17 +39,23 @@ param4 = NumberField('Point Load [kN]', name='ShapeDiverParams.5cd39465-987a-423
 param5 = NumberField('Position - Point Load', name='ShapeDiverParams.d43d900f-e6ec-4e00-9959-76f111124089', default=0.50, min=0, max=1, num_decimals=2, step=0.01, variant='slider')
 param6 = NumberField('Line Load [kN/m]', name='ShapeDiverParams.f357c444-06e6-4380-a8d6-2ef175d74ce4', default=30, min=5, max=30, num_decimals=0, step=1.0, variant='slider')
 param7 = BooleanField('Keep Compression Diagonals', name='ShapeDiverParams.c88a4330-8457-45a9-8020-15e241b360e5', default=False)
-param8Options = [OptionListElement('0', 'Cross Sec'), OptionListElement('1', 'Axial Stress'), OptionListElement('2', 'Utilisation'), OptionListElement('3', 'Displacement')]
-param8 = OptionField('Render Settings', name='ShapeDiverParams.99459452-6f89-4c85-b0f3-3b258b1f2199', options=param8Options, default=1)
+_param8Options = [OptionListElement('0', 'Cross Sec'), OptionListElement('1', 'Axial Stress'), OptionListElement('2', 'Utilisation'), OptionListElement('3', 'Displacement')]
+param8 = OptionField('Render Settings', name='ShapeDiverParams.99459452-6f89-4c85-b0f3-3b258b1f2199', options=_param8Options, default='1')
 param9 = NumberField('Deformation Scale', name='ShapeDiverParams.f582e03d-ec6f-4820-933e-a5ceefb9163e', default=100, min=0, max=100, num_decimals=0, step=1.0, variant='slider')
 ```
 
-You can use this as a starting point for defining input fields in [`app.py`](app.py).
+You can use this as a starting point for defining [input fields](https://docs.viktor.ai/docs/create-apps/user-input/) in [`app.py`](app.py).
 
 ## Local development
 
-When running the app for local development in VIKTOR, make sure to use the environment variables like this: 
+When running the app for local development in VIKTOR, make sure to pass on the environment variables to `viktor-cli` like this: 
 
 ```
 viktor-cli start --env SD_TICKET=$SD_TICKET --env SD_MODEL_VIEW_URL=$SD_MODEL_VIEW_URL
 ```
+
+## Publishing the app
+
+Keep in mind to define the required [environment variables](https://docs.viktor.ai/docs/create-apps/development-tools-and-tips/environment-variables) for your published app.  
+
+Have fun developing apps using ShapeDiver and VIKTOR! Should you have questions, check out the [ShapeDiver Help Center](https://help.shapediver.com/doc/) and our [Forum](https://forum.shapediver.com/). 
