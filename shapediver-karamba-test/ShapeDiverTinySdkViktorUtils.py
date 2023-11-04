@@ -1,6 +1,6 @@
 from viktor.utils import memoize
 from viktor import UserError, UserMessage
-from ShapeDiverTinySdk import ShapeDiverTinySessionSdk, RgbToShapeDiverColor
+from ShapeDiverTinySdk import ShapeDiverTinySessionSdk, RgbToShapeDiverColor, mapFileEndingToContentType
 import json
 import requests
 
@@ -53,7 +53,7 @@ def parameterMapper(*, paramDict, sdk):
                 body = {}
                 body[paramId] = {}
                 body[paramId]['size'] = len(fileBinaryContent)
-                body[paramId]['format'] = paramDef['format'][0]
+                body[paramId]['format'] = mapFileEndingToContentType(value.filename)
                 uploadResponse = sdk.requestFileUpload(requestBody = body).assetFile(paramId)
                 # upload the file
                 headers = {

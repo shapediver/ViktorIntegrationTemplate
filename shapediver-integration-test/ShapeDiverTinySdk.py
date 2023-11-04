@@ -1,6 +1,107 @@
 import json
 import requests
 
+fileEndingToContentTypeMap = {
+    "svg": "image/svg+xml",
+    "svgz": "image/svg+xml",
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "png": "image/png",
+    "gif": "image/gif",
+    "bmp": "image/bmp",
+    "tif": "image/tif",
+    "tiff": "image/tiff",
+    "hdr": "image/vnd.radiance",
+    "gltf": "gltf+json",
+    "glb": "model/gltf-binary",
+    "bin": "application/octet-stream",
+    "gltf": "model/gltf-binary",
+    "3dm": "model/vnd.3dm",
+    "3dm": "application/3dm",
+    "3dm": "x-world/x-3dmf",
+    "3ds": "application/x-3ds",
+    "3ds": "image/x-3ds",
+    "3ds": "application/3ds",
+    "fbx": "application/fbx",
+    "dxf": "application/dxf",
+    "dxf": "application/x-autocad",
+    "dxf": "application/x-dxf",
+    "dxf": "drawing/x-dxf",
+    "dxf": "image/vnd.dxf",
+    "dxf": "image/x-autocad",
+    "dxf": "image/x-dxf",
+    "dxf": "zz-application/zz-winassoc-dxf",
+    "dwg": "application/dwg",
+    "pdf": "application/pdf",
+    "3mf": "model/3mf",
+    "stl": "model/stl",
+    "stl": "application/sla",
+    "amf": "application/amf",
+    "ai": "application/ai",
+    "dgn": "application/dgn",
+    "ply": "application/ply",
+    "ps": "application/postscript",
+    "eps": "application/postscript",
+    "skp": "application/skp",
+    "slc": "application/slc",
+    "sldprt": "application/sldprt",
+    "sldasm": "application/sldasm",
+    "stp": "application/step",
+    "step": "application/step",
+    "vda": "application/vda",
+    "gdf": "application/gdf",
+    "vrml": "model/vrml",
+    "vrml": "model/x3d-vrml",
+    "wrl": "model/vrml",
+    "wrl": "model/x3d-vrml",
+    "vi": "model/vrml",
+    "vi": "model/x3d-vrml",
+    "igs": "model/iges",
+    "iges": "model/iges",
+    "igs": "application/iges",
+    "iges": "application/iges",
+    "obj": "application/wavefront-obj",
+    "obj": "model/obj",
+    "off": "application/off",
+    "txt": "text/plain",
+    "mtl": "text/plain",
+    "g": "text/plain",
+    "gcode": "text/plain",
+    "glsl": "text/plain",
+    "csv": "text/csv",
+    "csv": "application/vnd.ms-excel",
+    "xls": "application/vnd.ms-excel",
+    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "doc": "application/msword",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "rtf": "application/rtf",
+    "zip": "application/zip",
+    "xml": "application/xml",
+    "xml": "text/xml",
+    "json": "application/json",
+    "ifc": "application/x-step",
+    "ifcxml": "application/xml",
+    "ifczip": "application/zip",
+    "sdtf": "model/vnd.sdtf",
+    "sddtf": "model/vnd.sdtf"
+}
+
+def mapFileEndingToContentType(fileEnding):
+    if "." in fileEnding:
+        fileEnding = fileEnding.split(".")[-1]
+    if fileEnding in fileEndingToContentTypeMap.keys():
+        return fileEndingToContentTypeMap[fileEnding]
+    else:
+        return None
+
+def mapContentTypeToFileEnding(contentType):
+    if contentType in fileEndingToContentTypeMap.values():
+        for key, value in fileEndingToContentTypeMap.items():
+            if value == contentType:
+                return key
+    else:
+        return None
+
 def ShapeDiverColorToRgb(sdColor):
     return tuple(int(sdColor[i:i+2],16) for i in (2, 4, 6))
 
@@ -213,7 +314,7 @@ class ShapeDiverTinySessionSdk:
     def requestFileUpload(self, *, requestBody = {}):
         """Request the upload of a file for a parameter of type 'File'
 
-        API documentation: TODO
+        API documentation: https://sdr7euc1.eu-central-1.shapediver.com/api/v2/docs/#/file/post_api_v2_session__sessionId__file_upload
         """
 
         endpoint = f'{self.modelViewUrl}/api/v2/session/{self.response.sessionId()}/file/upload'
