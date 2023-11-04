@@ -78,6 +78,14 @@ class ShapeDiverResponse:
 
         return self.response['sessionId']
     
+    def assetFile(self, paramId):
+        """Get upload URL and file id for a requested upload of a file parameter.
+        
+        The returned object contains properties 'id' and 'href'.
+        """
+
+        return self.response['asset']['file'][paramId]
+    
 def ExceptionHandler(func):
     """Decorator for activating the exception handler"""
     def decorate(*args, **kwargs):
@@ -196,6 +204,26 @@ class ShapeDiverTinySessionSdk:
         response = requests.put(endpoint, data=jsonBody, headers=headers)
         if response.status_code != 200:
             raise Exception(f'Failed to compute export (HTTP status code {response.status_code}): {response.text}')
+
+        # TODO: handle rate-limiting and delay
+
+        return ShapeDiverResponse(response.json())
+    
+    @ExceptionHandler
+    def requestFileUpload(self, *, requestBody = {}):
+        """Request the upload of a file for a parameter of type 'File'
+
+        API documentation: TODO
+        """
+
+        endpoint = f'{self.modelViewUrl}/api/v2/session/{self.response.sessionId()}/file/upload'
+        jsonBody = json.dumps(requestBody)
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        response = requests.post(endpoint, data=jsonBody, headers=headers)
+        if response.status_code != 200:
+            raise Exception(f'Failed to request file upload (HTTP status code {response.status_code}): {response.text}')
 
         # TODO: handle rate-limiting and delay
 

@@ -2,6 +2,7 @@ from viktor.utils import memoize
 from viktor import UserError, UserMessage
 from ShapeDiverTinySdk import ShapeDiverTinySessionSdk, RgbToShapeDiverColor
 import json
+import requests
 
 def exceptionHandler(e):
     """VIKTOR-specific exception handler to use for ShapeDiverTinySessionSdk
@@ -32,15 +33,42 @@ def parameterMapper(*, paramDict, sdk):
     paramDictSd = {}
     paramIds = [key for (key, value) in paramDict.items()]
     for paramId in paramIds:
+        value = paramDict[paramId]
+        if value is None:
+            continue
         if paramId in sdk.response.response['parameters']:
             paramDef = sdk.response.response['parameters'][paramId]
             if paramDef['type'] == 'Color':
-                color = paramDict[paramId]
+                color = value
                 paramDictSd[paramId] = RgbToShapeDiverColor(color.r, color.g, color.b)
+            elif paramDef['type'] == 'File':
+                # See Viktor FileField and File object
+                # https://docs.viktor.ai/sdk/api/parametrization/#FileField
+                # https://docs.viktor.ai/sdk/api/core/#_File
+                # Note: Reading the whole file into memory, like done in the following, 
+                #       might cause problems in case of big files.
+                fileBinaryContent = value.file.getvalue_binary()
+                # request file upload to ShapeDiver Geometry Backend
+                # we simply use the first allowed content-type (mapping of file ending to content-type to be implemented)
+                body = {}
+                body[paramId] = {}
+                body[paramId]['size'] = len(fileBinaryContent)
+                body[paramId]['format'] = paramDef['format'][0]
+                uploadResponse = sdk.requestFileUpload(requestBody = body).assetFile(paramId)
+                # upload the file
+                headers = {
+                    'Content-Type': body[paramId]['format']
+                }
+                response = requests.put(uploadResponse['href'], data=fileBinaryContent, headers=headers)
+                if response.status_code != 200:
+                    raise Exception(f'Failed to put file (HTTP status code {response.status_code}): {response.text}')
+                # set parameter value to id of uploaded file
+                paramDictSd[paramId] = uploadResponse['id']
+                # TODO memoize id of uploaded file based on hash of file contents and parameter id
             else:
-                paramDictSd[paramId] = paramDict[paramId]
+                paramDictSd[paramId] = value
         else:
-            paramDictSd[paramId] = paramDict[paramId]
+            paramDictSd[paramId] = value
 
     return paramDictSd
 

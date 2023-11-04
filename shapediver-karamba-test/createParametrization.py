@@ -36,8 +36,10 @@ def createParametrization(ticket, modelViewUrl):
             varnameOptions = f"_{varname}Options"
             print(f"{varnameOptions} = [{', '.join(options)}]")
             print(f"{varname} = OptionField('{ui_name}', name='{name}', options={varnameOptions}, default='{param['defval']}')")
-        #elif param['type'] == 'File':
-        #see https://docs.viktor.ai/sdk/api/parametrization/#_FileField
+        elif param['type'] == 'File':
+            # see https://docs.viktor.ai/sdk/api/parametrization/#_FileField
+            # mapping of filename to content-type to be implemented
+            print(f"{varname} = FileField('{ui_name}', name='{name}', max_size={param['max']})")
         elif param['type'] == 'Color':
             rgb = ShapeDiverColorToRgb(param['defval'])
             print(f"{varname} = ColorField('{ui_name}', name='{name}', default=Color({rgb[0]},{rgb[1]},{rgb[2]}))")

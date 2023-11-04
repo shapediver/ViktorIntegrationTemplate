@@ -1,5 +1,5 @@
 from viktor import ViktorController, File, UserMessage, UserError
-from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image, ColorField, Color, OptionListElement, OptionField
+from viktor.parametrization import ViktorParametrization, Text, TextField, NumberField, Section, Image, ColorField, Color, OptionListElement, OptionField, FileField
 from viktor.views import GeometryView, GeometryResult
 from ShapeDiverTinySdkViktorUtils import ShapeDiverTinySessionSdkMemoized
 
@@ -29,6 +29,8 @@ Here you can find the sample ShapeDiver model used by this app: [AR Cube](https:
     ## Parameters of ShapeDiver model (to be investigated how these can be defined dynamically, based on the model)
     ## Note: Set the "name" property to "ShapeDiverParams.{IDENTIFIER}" where {IDENTIFIER} is the id, name, or displayname of the ShapeDiver parameter!
     parameters = Section('Model Parameters')
+    parameters.param0 = FileField('Image', name='ShapeDiverParams.9876f55e-2e72-4446-852c-0b3f45f5bcc9', max_size=10485760)
+    #parameters.param2 = FileField('Mesh', name='ShapeDiverParams.9bcbbe0d-deff-460c-9658-12b1bd1a4718', max_size=10485760)
     parameters.param3 = NumberField('Cubes', name='ShapeDiverParams.b719ebef-68f7-4c8e-b3b4-0e21b6ffcf4c', default=10, min=1, max=20, num_decimals=0, step=1, variant='slider')
     parameters.param4 = NumberField('Faces per cube', name='ShapeDiverParams.fa076989-c83c-4988-b8b1-473101f16d43', default=2, min=1, max=5, num_decimals=0, step=1, variant='slider')
     parameters.param5 = NumberField('Cube density', name='ShapeDiverParams.87266a9f-04e9-4d0e-bd5f-637243f62070', default=3, min=1, max=5, num_decimals=0, step=1, variant='slider')
@@ -51,7 +53,7 @@ class Controller(ViktorController):
     def runShapeDiver(self, params, **kwargs):
         
         # Debug output
-        # UserMessage.info(str(params))
+        #UserMessage.info(str(params))
 
         # Get model information from section "model" 
         model = params.model
