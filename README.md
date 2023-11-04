@@ -3,4 +3,9 @@ Template for integrating [ShapeDiver](https://shapediver.com) models into [VIKTO
 
 Please see the following examples: 
 
-  * [shapediver-karamba-test](shapediver-karamba-test)
+  * AR Cube example
+    * [Code](shapediver-integration-test)
+    * [Deployed VIKTOR app](https://cloud.viktor.ai/public/shapediver-integration-test)
+  * Karamba example
+    * [Code](shapediver-karamba-test)
+    * [Deployed VIKTOR app](https://cloud.viktor.ai/public/shapediver-karamba-integration-test)
